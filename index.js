@@ -1,9 +1,9 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express();
 const cors = require('cors');
-const port =process.env.PORT || 7000;
+const port = process.env.PORT || 7000;
 
 // Midaleware.............................................
 app.use(cors());
@@ -14,42 +14,65 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 console.log(uri);
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
 async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
 
-    const servicesCollection = client.db('acrMeahanic').collection('services')
+        const servicesCollection = client.db('acrMeahanic').collection('services')
+        const bookingsCollection = client.db('acrMeahanic').collection('booking')
 
-    app.get('/services', async(req, res)=>{
-        const cursor = servicesCollection.find()
-        const result = await cursor.toArray()
-        res.send(result);
-    })
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
-  }
+        app.get('/services', async (req, res) => {
+            const cursor = servicesCollection.find()
+            const result = await cursor.toArray()
+            res.send(result);
+        })
+
+        app.post('/bookings', (req, res) => {
+            const booking = req.body;
+            console.log(booking)
+            const result = bookingsCollection.insertOne(booking);
+            res.send(result)
+        })
+
+        app.get('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const options = {
+                projection: { title: 1, price: 1, service_id: 1 },
+            };
+
+            const result = await servicesCollection.findOne(query, options)
+            res.send(result);
+        })
+
+      
+        
+        // Send a ping to confirm a successful connection
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+        // Ensures that the client will close when you finish/error
+        // await client.close();
+    }
 }
 run().catch(console.dir);
 
 
-app.get('/', (req, res)=>{
+app.get('/', (req, res) => {
     res.send('Car Solution is Running.............')
 });
 
-app.listen(port , ()=>{
-console.log(`Car Machanic is on port ${port}`)
+app.listen(port, () => {
+    console.log(`Car Machanic is on port ${port}`)
 })
 
 
@@ -114,12 +137,12 @@ console.log(`Car Machanic is on port ${port}`)
 
 //             const coffee = {
 //                 $set: {
-//                     name: updatedCoffee.name, 
-//                     quantity: updatedCoffee.quantity, 
-//                     supplier: updatedCoffee.supplier, 
-//                     taste: updatedCoffee.taste, 
-//                     category: updatedCoffee.category, 
-//                     details: updatedCoffee.details, 
+//                     name: updatedCoffee.name,
+//                     quantity: updatedCoffee.quantity,
+//                     supplier: updatedCoffee.supplier,
+//                     taste: updatedCoffee.taste,
+//                     category: updatedCoffee.category,
+//                     details: updatedCoffee.details,
 //                     photo: updatedCoffee.photo
 //                 }
 //             }
@@ -154,4 +177,36 @@ console.log(`Car Machanic is on port ${port}`)
 
 // app.listen(port, () => {
 //     console.log(`Coffee Server is running on port: ${port}`)
+// })
+
+// const serviceCollection = client.db('serviceDB').collection('service');
+
+// // data pathano................................................
+// app.post('/services', async(req, res)=>{
+//     const newService = req.body;
+//     const result = await serviceCollection.insertOne(newService);
+//     res.send(result);
+// })
+
+// // data get ba show data.........................................
+// app.get('/sercice', async(req, res)=>{
+//     const cursor = serviceCollection.find();
+//     const result = await cursor.toArray();
+//     res.send(result);
+// })
+
+// // id soho data ana...............................................
+// app.get('/service/:id', async(req, res)=>{
+//     const id = req.params.id;
+//     const query = {_id: new ObjectId(id)};
+//     const result = await serviceCollection.findOne(query);
+//     res.send(result);
+// })
+
+// // service delete from db.......................................
+// app.delete('/service/:id', async(req, res)=>{
+//     const id = req.params.id;
+//     const query = {_id: new ObjectId(id)};
+//     const result = await serviceCollection.deleteOne(query);
+//     res.send(result);
 // })
