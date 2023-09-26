@@ -35,6 +35,20 @@ async function run() {
             res.send(result);
         })
 
+     
+
+        app.get('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const options = {
+                projection: { title: 1, price: 1, service_id: 1, img: 1 },
+            };
+
+            const result = await servicesCollection.findOne(query, options)
+            res.send(result);
+        })
+
+        // bookings........................................................
         app.post('/bookings', (req, res) => {
             const booking = req.body;
             console.log(booking)
@@ -42,16 +56,14 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/services/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) }
-
-            const options = {
-                projection: { title: 1, price: 1, service_id: 1 },
-            };
-
-            const result = await servicesCollection.findOne(query, options)
-            res.send(result);
+        app.get('/bookings', async(req, res)=>{
+            let query = {}
+            if(req.query?.email){
+                query= {email: req.query.email}
+            }
+            const result = await bookingsCollection.find().toArray()
+            
+            res.send(result)
         })
 
       
