@@ -21,6 +21,7 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+
 const varifyJWT = (req, res, next) =>{
 const   authoraization = (req.headers.authoraization);
 if(!authoraization){
@@ -47,7 +48,7 @@ async function run() {
         app.post('/jwt', (req, res)=>{
             const user = req.body;
             console.log(user)
-            const token = jwt.sign(user, process.env.ACCEES_TOKEN, {expiresIn: '10h'});
+            const token = jwt.sign(user, process.env.ACCEES_TOKEN, {expiresIn: '1h'});
             res.send({token})
         })
 
