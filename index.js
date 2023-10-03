@@ -21,6 +21,20 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+const varifyJWT = (req, res, next) =>{
+const   authoraization = (req.headers.authoraization);
+if(!authoraization){
+   return res.status(401).send({error: true, message:'unauthorizeation'})
+}
+const token = authoraization.split(' ')[1];
+jwt.verify(token, process.env.ACCEES_TOKEN, (error, decoded) =>{
+    if(erorr){
+        return res.status(404).send({error: true, message:'unauthorizeation'})
+     }
+     req.decoded = decoded;
+     next();
+})
+}
 
 async function run() {
     try {
@@ -29,6 +43,13 @@ async function run() {
 
         const servicesCollection = client.db('acrMeahanic').collection('services')
         const bookingsCollection = client.db('acrMeahanic').collection('booking')
+
+        app.post('/jwt', (req, res)=>{
+            const user = req.body;
+            console.log(user)
+            const token = jwt.sign(user, process.env.ACCEES_TOKEN, {expiresIn: '10h'});
+            res.send({token})
+        })
 
         app.get('/services', async (req, res) => {
             const cursor = servicesCollection.find()
@@ -57,7 +78,11 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/bookings', async (req, res) => {
+        app.get('/bookings', varifyJWT, async (req, res) => {
+            const decoded = req.decoded;
+            if(decoded.email !== req.query.email){
+                return res.send({erorr: 1, message:'forbidden access'})
+            }
             let query = {}
             if (req.query?.email) {
                 query = { email: req.query.email }
