@@ -1,4 +1,5 @@
 const express = require('express');
+const serverless = require('serverless-http');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
@@ -138,7 +139,7 @@ app.listen(port, () => {
 
 
 
-
+module.exports.handler = serverless(app);
 
 // const express = require('express');
 // const cors = require('cors');
