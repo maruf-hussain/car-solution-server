@@ -22,19 +22,19 @@ const client = new MongoClient(uri, {
     }
 });
 
-const varifyJWT = (req, res, next) =>{
-const   authoraization = (req.headers.authoraization);
-if(!authoraization){
-   return res.status(401).send({error: true, message:'unauthorizeation'})
-}
-const token = authoraization.split(' ')[1];
-jwt.verify(token, process.env.ACCEES_TOKEN, (error, decoded) =>{
-    if(erorr){
-        return res.status(404).send({error: true, message:'unauthorizeation'})
-     }
-     req.decoded = decoded;
-     next();
-})
+const varifyJWT = (req, res, next) => {
+    const authoraization = (req.headers.authoraization);
+    if (!authoraization) {
+        return res.status(401).send({ error: true, message: 'unauthorizeation' })
+    }
+    const token = authoraization.split(' ')[1];
+    jwt.verify(token, process.env.ACCEES_TOKEN, (error, decoded) => {
+        if (error) {
+            return res.status(404).send({ error: true, message: 'unauthorizeation' })
+        }
+        req.decoded = decoded;
+        next();
+    })
 }
 
 async function run() {
@@ -45,11 +45,11 @@ async function run() {
         const servicesCollection = client.db('acrMeahanic').collection('services')
         const bookingsCollection = client.db('acrMeahanic').collection('booking')
 
-        app.post('/jwt', (req, res)=>{
+        app.post('/jwt', (req, res) => {
             const user = req.body;
             console.log(user)
-            const token = jwt.sign(user, process.env.ACCEES_TOKEN, {expiresIn: '1h'});
-            res.send({token})
+            const token = jwt.sign(user, process.env.ACCEES_TOKEN, { expiresIn: '1h' });
+            res.send({ token })
         })
 
         app.get('/services', async (req, res) => {
@@ -81,14 +81,14 @@ async function run() {
 
         app.get('/bookings', varifyJWT, async (req, res) => {
             const decoded = req.decoded;
-            if(decoded.email !== req.query.email){
-                return res.send({erorr: 1, message:'forbidden access'})
+            if (decoded.email !== req.query.email) {
+                return res.status(403).send({ erorr: 1, message: 'forbidden access' })
             }
-            let query = {}
+            let query = {};
             if (req.query?.email) {
                 query = { email: req.query.email }
             }
-            const result = await bookingsCollection.find().toArray()
+            const result = await bookingsCollection.find(query).toArray();
 
             res.send(result)
         })
